@@ -1,22 +1,23 @@
 # --- Backend: Node + Prisma ---
 FROM node:20-alpine
 
+# Prisma needs openssl and libc6-compat to run on Alpine
+RUN apk add --no-cache openssl libc6-compat
+
 WORKDIR /app
 
-# Install dependencies first for better layer caching.
+# Install dependencies
 COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+RUN npm install
 
-# Prisma needs the schema at install/generate time.
+# Copy Prisma schema and generate client
 COPY prisma ./prisma
 RUN npx prisma generate
 
+# Copy the rest of the code
 COPY . .
 
-# Entrypoint syncs the DB schema, seeds, then starts the server.
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
 EXPOSE 4000
-ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["node", "src/index.js"]
+
+# Run migrations, seed, and start in one go
+CMD npx prisma db push && node prisma/seed.js && node src/index.js
