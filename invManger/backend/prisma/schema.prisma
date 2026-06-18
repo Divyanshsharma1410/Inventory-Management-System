@@ -1,0 +1,78 @@
+// Prisma schema for Inventory Manager
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(STAFF)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  movements StockMovement[]
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products    Product[]
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  sku          String   @unique
+  description  String?
+  price        Decimal  @default(0) @db.Decimal(12, 2)
+  cost         Decimal  @default(0) @db.Decimal(12, 2)
+  quantity     Int      @default(0)
+  lowStockAt   Int      @default(10)
+  categoryId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category  Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  movements StockMovement[]
+
+  @@index([categoryId])
+  @@index([name])
+}
+
+model StockMovement {
+  id        String       @id @default(uuid())
+  productId String
+  userId    String?
+  type      MovementType
+  quantity  Int
+  note      String?
+  createdAt DateTime     @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([createdAt])
+}
+
+enum MovementType {
+  IN
+  OUT
+  ADJUST
+}
