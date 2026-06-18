@@ -1,15 +1,11 @@
 {
-  "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "Dockerfile",
-    "watchPatterns": ["src/**", "prisma/**"]
+    "dockerfilePath": "Dockerfile"
   },
   "deploy": {
     "startCommand": "npx prisma db push && node prisma/seed.js && node src/index.js",
     "healthcheckPath": "/health",
-    "healthcheckTimeout": 120,
-    "restartPolicyType": "ON_FAILURE",
-    "numReplicas": 1
+    "restartPolicyType": "ON_FAILURE"
   }
 }
