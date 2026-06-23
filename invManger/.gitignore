@@ -23,3 +23,7 @@ npm-debug.log*
 .idea/
 .vscode/
 *.swp
+
+# Claude Code internals
+.agents/
+skills-lock.json
